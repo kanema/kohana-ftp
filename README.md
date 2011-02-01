@@ -1,4 +1,4 @@
-Kohana Cache library
+Kohana FTP
 ====================
 
 Kohana FTP is inspired in CodeIgniter FTP Class and permits files to be transfered to a remote server. Remote files can also be moved, renamed, and deleted.
