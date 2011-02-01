@@ -21,6 +21,19 @@ class Kohana_Ftp {
 	
 	// Singleton static instance
 	protected static $_instance = array();
+	
+	/**
+	 * Constructor
+	 *
+	 * Detect if the FTP extension loaded
+	 *
+	 */
+	public function __construct()
+	{
+		if ( ! extension_loaded('ftp') ) {
+			throw new Kohana_Exception("PHP extension FTP is not loaded.");
+		}
+	}
 
 	/**
 	 * Get the singleton instance of Kohana_Ftp.
@@ -89,8 +102,6 @@ class Kohana_Ftp {
 		};
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * FTP Connect
 	 *
@@ -137,8 +148,6 @@ class Kohana_Ftp {
 		return $this->connected = TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * FTP Login
 	 *
@@ -151,8 +160,6 @@ class Kohana_Ftp {
 		$this->config['password'] = ( $this->config['password'] ) ? $this->config['password'] : NULL;
 		return @ftp_login($this->conn_id, $this->config['user'], $this->config['password']);
 	}
-
-	// --------------------------------------------------------------------
 
 	/**
 	 * Validates the connection ID
@@ -170,8 +177,6 @@ class Kohana_Ftp {
 		
 		return TRUE;
 	}
-
-	// --------------------------------------------------------------------
 
 
 	/**
@@ -208,8 +213,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Create a directory
 	 *
@@ -241,8 +244,6 @@ class Kohana_Ftp {
 
 		return TRUE;
 	}
-
-	// --------------------------------------------------------------------
 
 	/**
 	 * Upload a file to the server
@@ -297,8 +298,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Download a file from a remote server to the local server
 	 *
@@ -335,8 +334,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Rename (or move) a file
 	 *
@@ -367,8 +364,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Move a file
 	 *
@@ -385,8 +380,6 @@ class Kohana_Ftp {
 		};
 		return $this->rename($old_file, $new_file, TRUE);
 	}
-
-	// --------------------------------------------------------------------
 
 	/**
 	 * Rename (or move) a file
@@ -411,8 +404,6 @@ class Kohana_Ftp {
 
 		return TRUE;
 	}
-
-	// --------------------------------------------------------------------
 
 	/**
 	 * Delete a folder and recursively delete everything (including sub-folders)
@@ -458,8 +449,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Set file permissions
 	 *
@@ -491,8 +480,6 @@ class Kohana_Ftp {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * FTP List files in the specified directory
 	 *
@@ -508,8 +495,36 @@ class Kohana_Ftp {
 
 		return ftp_nlist($this->conn_id, $path);
 	}
-
-	// ------------------------------------------------------------------------
+	
+	/**
+	 * FTP Size of a specified file
+	 *
+	 * @access	public
+	 * @return	int	Returns the file size on success, or -1 on error
+	 */
+	public function file_size($filepath = '.')
+	{
+		if ( ! $this->_is_conn() )
+		{
+			return FALSE;
+		};
+		return ftp_size($this->conn_id, $filepath);
+	}
+	
+	/**
+	 * FTP Last modified time of the given file
+	 *
+	 * @access	public
+	 * @return	int	Returns the file size on success, or -1 on error
+	 */
+	public function filemtime($filepath = '.')
+	{
+		if ( ! $this->_is_conn() )
+		{
+			return FALSE;
+		};
+		return ftp_mdtm($this->conn_id, $filepath);
+	}
 
 	/**
 	 * Read a directory and recreate it remotely
@@ -566,8 +581,6 @@ class Kohana_Ftp {
 	}
 
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Extract the file extension
 	 *
@@ -586,8 +599,6 @@ class Kohana_Ftp {
 		return end($x);
 	}
 
-
-	// --------------------------------------------------------------------
 
 	/**
 	 * Set the upload type
@@ -617,8 +628,6 @@ class Kohana_Ftp {
 		return (in_array($ext, $text_types)) ? 'ascii' : 'binary';
 	}
 
-	// ------------------------------------------------------------------------
-
 	/**
 	 * Close the connection
 	 *
@@ -645,8 +654,6 @@ class Kohana_Ftp {
 	{
 		$this->close();
 	}
-
-	// ------------------------------------------------------------------------
 
 
 }
