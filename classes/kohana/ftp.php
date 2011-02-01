@@ -105,9 +105,16 @@ class Kohana_Ftp {
 			return TRUE;
 		};
 		
-		if ( empty( $this->config ) || ! isset( $this->config['host'] ) || ! isset( $this->config['port'] ) )
+		if ( empty( $this->config ) )
 		{
 			throw new Kohana_Exception('FTP config not set.');
+		};
+		
+		$this->config['port'] = ( isset( $this->config['port'] ) ) ? $this->config['port'] : 21;
+		
+		if ( ! isset( $this->config['host'] ) )
+		{
+			throw new Kohana_Exception('FTP host not set.');
 		};
 	
 		if (FALSE === ($this->conn_id = @ftp_connect($this->config['host'], $this->config['port'])))
@@ -265,6 +272,12 @@ class Kohana_Ftp {
 			$ext = $this->_getext($locpath);
 			$mode = $this->_settype($ext);
 		};
+		
+		if ( ftp_alloc( $conn_id, filesize($locpath), $result) ) {
+			throw new Kohana_Exception('Unable to allocate space on server. Server said: :result',
+				array(':result' => $result )
+			);
+		}
 
 		$mode = ($mode === 'ascii') ? FTP_ASCII : FTP_BINARY;
 
