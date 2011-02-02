@@ -18,6 +18,8 @@ return array
 		'user'		=> 'your-username',
 		'password'	=> 'your-password',
 		'port'		=> 21,
-		'passive'	=> TRUE
+		'passive'	=> TRUE,
+		'ssh'		=> FALSE,
+		'timeout'	=> 90,
 	),
 );

@@ -100,6 +100,11 @@ class Kohana_Ftp {
 			$this->config[$name] = $args[0];
 			return $this;
 		};
+		if ( preg_match('/^timeout$/', $name) )
+		{
+			$this->config['timeout'] = $args[0];
+			return $this;
+		};
 	}
 
 	/**
@@ -127,8 +132,14 @@ class Kohana_Ftp {
 		{
 			throw new Kohana_Exception('FTP host not set.');
 		};
-	
-		if (FALSE === ($this->conn_id = @ftp_connect($this->config['host'], $this->config['port'])))
+		
+		$this->config["ssh"] = ( isset( $this->config["ssh"] ) ) ? $this->config["ssh"] : FALSE;
+		$this->config["timeout"] = ( isset( $this->config["time"] ) ) ? $this->config["timeout"] : 90;
+		
+		if ( TRUE === $this->config["ssh"] && FALSE === ($this->conn_id = @ftp_ssl_connect($this->config['host'], $this->config['port'], $this->config["timeout"])))
+		{
+			throw new Kohana_Exception('FTP unable to ssh connect');
+		} else if (FALSE === ($this->conn_id = @ftp_connect($this->config['host'], $this->config['port'], $this->config["timeout"])))
 		{
 			throw new Kohana_Exception('FTP unable to connect');
 		};
@@ -493,7 +504,47 @@ class Kohana_Ftp {
 			return FALSE;
 		};
 		
-		return ( $details ) ? ftp_rawlist($this->conn_id, $path) : ftp_nlist($this->conn_id, $path);
+		if ( TRUE === $details )
+		{
+			$return = ftp_rawlist($this->conn_id, $path);
+			if ( ! empty( $return ) )
+			{
+				$new_return = array();
+				foreach ( $return as $item )
+				{
+					preg_match( "/(?P<chmod>\S*)(\s*)(?P<attr_1>\d*)(\s*)(?P<owner>\w*)(\s*)(?P<group>\w*)(\s*)(?P<attr_2>\w*)(\s*)(?P<mouth>\w*)(\s*)(?P<day>\d*)(\s*)(?P<year>\d*)(\s*)(?P<pathname>\w+)/", $item, $field );
+					$new_return[] = array(
+						"chmod" => $field["chmod"],
+						"attr_1" => $field["attr_1"],
+						"owner" => $field["owner"],
+						"group" => $field["group"],
+						"attr_2" => $field["attr_2"],
+						"mouth" => $field["mouth"],
+						"day" => $field["day"],
+						"year" => $field["year"],
+						"pathname" => $field["pathname"],
+					);
+				};
+				$return = $new_return;
+			};
+			return $return;
+		};
+		return ftp_nlist($this->conn_id, $path);
+	}
+	
+	/**
+	 * Returns the system type identifier of the remote FTP server. 
+	 *
+	 * @access	public
+	 * @return	string	Returns the remote system type, or FALSE on error. 
+	 */
+	public function systype()
+	{
+		if ( ! $this->_is_conn() )
+		{
+			return FALSE;
+		};
+		return ftp_systype( $this->conn_id );
 	}
 	
 	/**
@@ -525,6 +576,17 @@ class Kohana_Ftp {
 		};
 		return ftp_mdtm($this->conn_id, $filepath);
 	}
+	
+	/**
+	 * FTP Get file exists
+	 *
+	 * @access	public
+	 * @return	bool
+	 */
+	public function dir_exists( $path = '.' )
+    {
+		return (bool) ( ! $this->_is_conn() || ! @ftp_chdir($this->conn_id, $path) );
+    }
 
 	/**
 	 * Read a directory and recreate it remotely
