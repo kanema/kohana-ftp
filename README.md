@@ -48,6 +48,22 @@ Lets you create a directory on your server. Supply the path ending in the folder
 Permits you to set file permissions. Supply the path to the file or folder you wish to alter permissions on:
 	FTP::instance()->chmod('/public_html/foo/bar/', DIR_WRITE_MODE);
 
+**file_exists**
+Return true if the file exist
+	FTP::instance()->file_exists('/public_html/joe/blog.html'); 
+
+**file_size**
+Return the file size in bytes
+	FTP::instance()->file_size('/public_html/joe/blog.html');
+
+**systype**
+Return the system type of server
+	FTP::instance()->systype(); 
+
+**timeout**
+Set a timeout to request (default is 90 seconds)
+	FTP::instance()->timeout(60); 
+	
 
 Supported ftp methods
 -------------------------
@@ -68,7 +84,11 @@ Supported ftp methods
 
 	download( string $rempath , string $locpath [, string $mode = string(4) "auto" ] ) 
 
-	list_files( $path = '.' )
+	file_exists($filepath = '.')
+	
+	file_size($filepath = '.')
+	
+	list_files( $path = '.', $details = FALSE )
 
 	mirror( string $locpath , string $rempath )
 
@@ -79,5 +99,4 @@ Supported ftp methods
 	rename( string $old_file , string $new_file [, bool $move = bool FALSE ] )
 
 	upload( string $locpath , string $rempath [, string $mode = string(4) "auto" , $permissions = NULL ] )
-	
 	
