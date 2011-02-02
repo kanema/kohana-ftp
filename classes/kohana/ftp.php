@@ -3,8 +3,8 @@
  * Database object creation helper methods.
  *
  * @package    Kohana/Ftp
- * @category   Base
- * @author     Kohana Team
+ * @category   Network
+ * @author     Eduardo Pacheco
  * @copyright  (c) 2009 Kohana Team
  * @license    http://kohanaphp.com/license
  */
@@ -140,7 +140,7 @@ class Kohana_Ftp {
 		};
 
 		// Set passive mode if needed
-		if ($this->config['passive'] === TRUE)
+		if ( ! isset( $this->config['passive'] ) || $this->config['passive'] === TRUE )
 		{
 			ftp_pasv($this->conn_id, TRUE);
 		};
@@ -486,14 +486,14 @@ class Kohana_Ftp {
 	 * @access	public
 	 * @return	array
 	 */
-	public function list_files($path = '.')
+	public function list_files($path = '.', $details = FALSE)
 	{
 		if ( ! $this->_is_conn() )
 		{
 			return FALSE;
 		};
-
-		return ftp_nlist($this->conn_id, $path);
+		
+		return ( $details ) ? ftp_rawlist($this->conn_id, $path) : ftp_nlist($this->conn_id, $path);
 	}
 	
 	/**
