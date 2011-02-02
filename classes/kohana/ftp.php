@@ -214,9 +214,9 @@ class Kohana_Ftp {
 
 		$result = @ftp_chdir($this->conn_id, $path);
 
-		if ($result === FALSE)
+		if ($result === FALSE && $supress_debug === TRUE)
 		{	
-			throw new Kohana_Exception('FTP unable to cahngedir :dir',
+			throw new Kohana_Exception('FTP unable to changedir :dir',
 				array(':dir' => Kohana::debug_path($path))
 			);
 		};
@@ -507,18 +507,25 @@ class Kohana_Ftp {
 		if ( TRUE === $details )
 		{
 			$return = ftp_rawlist($this->conn_id, $path);
+			
+			/*
 			if ( ! empty( $return ) )
 			{
 				$new_return = array();
 				foreach ( $return as $item )
 				{
-					preg_match( "/(?P<chmod>\S*)(\s*)(?P<attr_1>\d*)(\s*)(?P<owner>\w*)(\s*)(?P<group>\w*)(\s*)(?P<attr_2>\w*)(\s*)(?P<mouth>\w*)(\s*)(?P<day>\d*)(\s*)(?P<year>\d*)(\s*)(?P<pathname>\w+)/", $item, $field );
+					echo $item;
+					preg_match( "/(?P<chmod>\S*)(\s*)(?P<attr_1>\d*)(\s*)(?P<owner>\w*)(\s*)(?P<group>\w*)(\s*)(?P<size>\w*)(\s*)(?P<mouth>\w*)(\s*)(?P<day>\d*)(\s*)(?P<year>\w+)(\s*)(?P<pathname>\w)/", $item, $field );
+					
+					var_dump( $field );
+					exit();
+					
 					$new_return[] = array(
 						"chmod" => $field["chmod"],
 						"attr_1" => $field["attr_1"],
 						"owner" => $field["owner"],
 						"group" => $field["group"],
-						"attr_2" => $field["attr_2"],
+						"attr_2" => $field["size"],
 						"mouth" => $field["mouth"],
 						"day" => $field["day"],
 						"year" => $field["year"],
@@ -527,6 +534,7 @@ class Kohana_Ftp {
 				};
 				$return = $new_return;
 			};
+			*/
 			return $return;
 		};
 		return ftp_nlist($this->conn_id, $path);
@@ -553,20 +561,51 @@ class Kohana_Ftp {
 	 * @access	public
 	 * @return	int	Returns the file size on success, or -1 on error
 	 */
-	public function file_size($filepath = '.')
+	public function file_size($filepath = '.', $formated = FALSE)
 	{
 		if ( ! $this->_is_conn() )
 		{
 			return FALSE;
 		};
-		return ftp_size($this->conn_id, $filepath);
+		$size = (int) @ftp_size($this->conn_id, $filepath);
+		return ( FALSE === $formated ) ? $size : self::_sizeFormat($size) ;
 	}
 	
 	/**
-	 * FTP Size of a specified file
+	 * Size Format
+	 * @private
+	 * @param	int		Size in bytes
+	 * @return	string	Returns the formated 
+	 */
+	private static function _sizeFormat( $size = 0 )
+	{
+		if( $size < 1024 )
+		{
+			$return = $size." bytes";
+		}
+		else if( $size < 1048576 )
+		{
+			$size = round ( $size / 1024, 1 );
+			$return = $size." KB";
+		}
+		else if( $size < ( 1073741824 ) )
+		{
+			$size= round( $size / 1048576, 1 );
+			$return = $size." MB";
+		}
+		else
+		{
+			$size = round( $size / 1073741824, 1 );
+			$return = $size." GB";
+		};
+		return (string) $return;
+	}
+	
+	/**
+	 * FTP File exists
 	 *
 	 * @access	public
-	 * @return	int	Returns the file size on success, or -1 on error
+	 * @return	bool
 	 */
 	public function file_exists($filepath = '.')
 	{
@@ -589,11 +628,11 @@ class Kohana_Ftp {
 		{
 			return FALSE;
 		};
-		return ftp_mdtm($this->conn_id, $filepath);
+		return (int) @ftp_mdtm($this->conn_id, $filepath);
 	}
 	
 	/**
-	 * FTP Get file exists
+	 * FTP Get dir exists
 	 *
 	 * @access	public
 	 * @return	bool
@@ -673,7 +712,7 @@ class Kohana_Ftp {
 		};
 
 		$x = explode('.', $filename);
-		return end($x);
+		return (string) end($x);
 	}
 
 
@@ -702,7 +741,7 @@ class Kohana_Ftp {
 							'xml'
 							);
 
-		return (in_array($ext, $text_types)) ? 'ascii' : 'binary';
+		return (bool) (in_array($ext, $text_types)) ? 'ascii' : 'binary';
 	}
 
 	/**
