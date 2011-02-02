@@ -563,6 +563,21 @@ class Kohana_Ftp {
 	}
 	
 	/**
+	 * FTP Size of a specified file
+	 *
+	 * @access	public
+	 * @return	int	Returns the file size on success, or -1 on error
+	 */
+	public function file_exists($filepath = '.')
+	{
+		if ( ! $this->_is_conn() )
+		{
+			return FALSE;
+		};
+		return (bool) ( $this->ftp_size($filepath) !== -1 );
+	}
+	
+	/**
 	 * FTP Last modified time of the given file
 	 *
 	 * @access	public
