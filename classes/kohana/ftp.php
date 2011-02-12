@@ -285,7 +285,7 @@ class Kohana_Ftp {
 			$mode = $this->_settype($ext);
 		};
 		
-		if ( ftp_alloc( $conn_id, filesize($locpath), $result) ) {
+		if ( ftp_alloc( $this->conn_id, filesize($locpath), $result) ) {
 			throw new Kohana_Exception('Unable to allocate space on server. Server said: :result',
 				array(':result' => $result )
 			);
@@ -490,7 +490,56 @@ class Kohana_Ftp {
 
 		return TRUE;
 	}
-
+	
+	// :: JaZz phpFramework
+	// :: V1.1
+	// :: 13/03/2009 15:35:22
+	function parse_ftp_rawlist($List, $Win = false)
+	{
+	  $Output = array();
+	  $i = 0;
+	  if ($Win) {
+		foreach ($List as $Current) {
+		  ereg('([0-9]{2})-([0-9]{2})-([0-9]{2}) +([0-9]{2}):([0-9]{2})(AM|PM) +([0-9]+|) +(.+)', $Current, $Split);
+		  if (is_array($Split)) {
+			if ($Split[3] < 70) {
+			  $Split[3] += 2000;
+			}
+			else {
+			  $Split[3] += 1900;
+			}
+			$Output[$i]['isdir']     = ($Split[7] == '');
+			$Output[$i]['size']      = $Split[7];
+			$Output[$i]['month']     = $Split[1];
+			$Output[$i]['day']       = $Split[2];
+			$Output[$i]['time/year'] = $Split[3];
+			$Output[$i]['name']      = $Split[8];
+			$i++;
+		  }
+		}
+		return !empty($Output) ? $Output : false;
+	  }
+	  else {
+		foreach ($List as $Current) {
+		  $Spli = preg_split('[ ]', $Current, 9, PREG_SPLIT_NO_EMPTY);
+		  if ($Split[0] != 'total') {
+			$Output[$i]['isdir']     = ($Split[0] {0} === 'd');
+			$Output[$i]['perms']     = $Split[0];
+			$Output[$i]['number']    = $Split[1];
+			$Output[$i]['owner']     = $Split[2];
+			$Output[$i]['group']     = $Split[3];
+			$Output[$i]['size']      = $Split[4];
+			$Output[$i]['month']     = $Split[5];
+			$Output[$i]['day']       = $Split[6];
+			$Output[$i]['time/year'] = $Split[7];
+			$Output[$i]['name']      = $Split[8];
+			$i++;
+		  }
+		}
+		return !empty($Output) ? $Output : false;
+	  }
+	}
+	
 	/**
 	 * FTP List files in the specified directory
 	 *
@@ -508,33 +557,15 @@ class Kohana_Ftp {
 		{
 			$return = ftp_rawlist($this->conn_id, $path);
 			
-			/*
 			if ( ! empty( $return ) )
 			{
 				$new_return = array();
-				foreach ( $return as $item )
-				{
-					echo $item;
-					preg_match( "/(?P<chmod>\S*)(\s*)(?P<attr_1>\d*)(\s*)(?P<owner>\w*)(\s*)(?P<group>\w*)(\s*)(?P<size>\w*)(\s*)(?P<mouth>\w*)(\s*)(?P<day>\d*)(\s*)(?P<year>\w+)(\s*)(?P<pathname>\w)/", $item, $field );
-					
-					var_dump( $field );
-					exit();
-					
-					$new_return[] = array(
-						"chmod" => $field["chmod"],
-						"attr_1" => $field["attr_1"],
-						"owner" => $field["owner"],
-						"group" => $field["group"],
-						"attr_2" => $field["size"],
-						"mouth" => $field["mouth"],
-						"day" => $field["day"],
-						"year" => $field["year"],
-						"pathname" => $field["pathname"],
-					);
-				};
+				var_dump( self::parse_ftp_rawlist( $return ) );
+				exit();
+				
 				$return = $new_return;
 			};
-			*/
+
 			return $return;
 		};
 		return ftp_nlist($this->conn_id, $path);
