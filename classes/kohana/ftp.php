@@ -670,7 +670,7 @@ class Kohana_Ftp {
 	 */
 	public function dir_exists( $path = '.' )
     {
-		return (bool) ( ! $this->_is_conn() || ! @ftp_chdir($this->conn_id, $path) );
+		return (bool) ( ! $this->_is_conn() || @ftp_chdir($this->conn_id, $path) );
     }
 
 	/**
